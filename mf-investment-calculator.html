@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MF Investment Calculator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            background: white;
+            padding: 10px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 15px 30px;
+            border: none;
+            background: #f0f0f0;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .tab-button:hover:not(.active) {
+            background: #e0e0e0;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 25px;
+            font-size: 1.5rem;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-group label {
+            display: block;
+            color: #555;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .input-group input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .input-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+
+        .input-group input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+        }
+
+        .lumpsum-slider {
+            background: linear-gradient(to right, #3b82f6 0%, #3b82f6 100%);
+        }
+
+        .sip-slider {
+            background: linear-gradient(to right, #10b981 0%, #10b981 100%);
+        }
+
+        .swp-slider {
+            background: linear-gradient(to right, #f59e0b 0%, #f59e0b 100%);
+        }
+
+        .calculate-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .download-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .download-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .excel-btn {
+            background: #10b981;
+            color: white;
+        }
+
+        .excel-btn:hover {
+            background: #059669;
+        }
+
+        .pdf-btn {
+            background: #ef4444;
+            color: white;
+        }
+
+        .pdf-btn:hover {
+            background: #dc2626;
+        }
+
+        .placeholder {
+            text-align: center;
+            padding: 100px 20px;
+            color: #999;
+        }
+
+        .placeholder svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .result-card {
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid;
+        }
+
+        .result-card.blue {
+            background: #eff6ff;
+            border-left-color: #3b82f6;
+        }
+
+        .result-card.green {
+            background: #f0fdf4;
+            border-left-color: #10b981;
+        }
+
+        .result-card.indigo {
+            background: #eef2ff;
+            border-left-color: #6366f1;
+        }
+
+        .result-card.purple {
+            background: #faf5ff;
+            border-left-color: #a855f7;
+        }
+
+        .result-card.orange {
+            background: #fff7ed;
+            border-left-color: #f59e0b;
+        }
+
+        .result-card.red {
+            background: #fef2f2;
+            border-left-color: #ef4444;
+        }
+
+        .result-card label {
+            display: block;
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .result-card .value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .info-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .info-item h4 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .info-item p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            padding: 20px;
+            font-size: 0.95rem;
+        }
+
+        .footer p {
+            margin: 5px 0;
+            opacity: 0.9;
+        }
+
+        .clear-btn {
+            width: 100%;
+            padding: 12px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+
+        .clear-btn:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
+
+        .auto-save-indicator {
+            text-align: center;
+            color: #10b981;
+            font-size: 0.85rem;
+            margin-top: 10px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .auto-save-indicator.show {
+            opacity: 1;
+        }
+
+        /* PDF Export Styles */
+        .pdf-export-content {
+            display: none;
+        }
+
+        .pdf-export-content.active {
+            display: block;
+            background: white;
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .pdf-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 20px;
+        }
+
+        .pdf-header h1 {
+            color: #667eea;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .pdf-info {
+            color: #666;
+            font-size: 0.9rem;
+            margin: 5px 0;
+        }
+
+        .pdf-section {
+            margin: 30px 0;
+        }
+
+        .pdf-section h2 {
+            color: #667eea;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+            padding-left: 15px;
+        }
+
+        .pdf-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .pdf-table th,
+        .pdf-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .pdf-table th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+
+        .pdf-table tr:nth-child(even) {
+            background: #f9fafb;
+        }
+
+        .pdf-table td:first-child {
+            font-weight: 600;
+        }
+
+        .pdf-footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px solid #ddd;
+            text-align: center;
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        .pdf-disclaimer {
+            margin-top: 15px;
+            font-style: italic;
+            color: #999;
+            font-size: 0.8rem;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid, .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧮 MF Investment Calculator</h1>
+            <p>Calculate Lumpsum, SIP, SWP with CAGR & XIRR | Currency: INR (₹)</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab('lumpsum')">Lumpsum</button>
+            <button class="tab-button" onclick="switchTab('sip')">SIP</button>
+            <button class="tab-button" onclick="switchTab('swp')">SWP</button>
+        </div>
+
+        <div class="main-grid">
+            <!-- Input Section -->
+            <div class="card">
+                <h2 id="input-title">Lumpsum Investment</h2>
+
+                <!-- Lumpsum Inputs -->
+                <div id="lumpsum-inputs">
+                    <div class="input-group">
+                        <label>Investment Amount: <span id="lumpsum-principal-display">₹1,00,000</span></label>
+                        <input type="range" class="lumpsum-slider" min="10000" max="10000000" step="10000" value="100000" id="lumpsum-principal" oninput="updateDisplay()">
+                    </div>
+                    <div class="input-group">
+                        <label>Expected Return Rate (p.a.): <span id="lumpsum-rate-display">12%</span></label>
+                        <input type="range" class="lumpsum-slider" min="1" max="30" step="0.5" value="12" id="lumpsum-rate" oninput="updateDisplay()">
+                    </div>
+                    <div class="input-group">
+                        <label>Time Period: <span id="lumpsum-years-display">10 years</span></label>
+                        <input type="range" class="lumpsum-slider" min="1" max="40" value="10" id="lumpsum-years" oninput="updateDisplay()">
+                    </div>
+                </div>
+
+                <!-- SIP Inputs -->
+                <div id="sip-inputs" class="hidden">
+                    <div class="input-group">
+                        <label>Monthly Investment: <span id="sip-monthly-display">₹5,000</span></label>
+                        <input type="range" class="sip-slider" min="500" max="100000" step="500" value="5000" id="sip-monthly" oninput="updateDisplay()">
+                    </div>
+                    <div class="input-group">
+                        <label>Expected Return Rate (p.a.): <span id="sip-rate-display">12%</span></label>
+                        <input type="range" class="sip-slider" min="1" max="30" step="0.5" value="12" id="sip-rate" oninput="updateDisplay()">
+                    </div>
+                    <div class="input-group">
+                        <label>Time Period: <span id="sip-years-display">10 years</span></label>
+                        <input type="range" class="sip-slider" min="1" max="40" value="10" id="sip-years" oninput="updateDisplay()">
+                    </div>
+                </div>
+
+                <!-- SWP Inputs -->
+                <div id="swp-inputs" class="hidden">
+                    <div class="input-group">
+                        <label>Initial Investment: <span id="swp-principal-display">₹10,00,000</span></label>
+                        <input type="range" class="swp-slider" min="100000" max="10000000" step="50000" value="1000000" id="swp-principal" oninput="updateDisplay()">
+                    </div>
+                    <div class="input-group">
+                        <label>Monthly Withdrawal: <span id="swp-withdrawal-display">₹10,000</span></label>
+                        <input type="range" class="swp-slider" min="1000" max="100000" step="1000" value="10000" id="swp-withdrawal" oninput="updateDisplay()">
+                    </div>
+                    <div class="input-group">
+                        <label>Expected Return Rate (p.a.): <span id="swp-rate-display">12%</span></label>
+                        <input type="range" class="swp-slider" min="1" max="30" step="0.5" value="12" id="swp-rate" oninput="updateDisplay()">
+                    </div>
+                    <div class="input-group">
+                        <label>Withdrawal Period: <span id="swp-years-display">10 years</span></label>
+                        <input type="range" class="swp-slider" min="1" max="40" value="10" id="swp-years" oninput="updateDisplay()">
+                    </div>
+                </div>
+
+                <button class="calculate-btn" onclick="calculate()">📊 Calculate Returns</button>
+                <button class="clear-btn" onclick="clearData()">🗑️ Clear All Data</button>
+                <div class="auto-save-indicator" id="auto-save-indicator">✓ Data auto-saved</div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="card">
+                <div class="results-header">
+                    <h2>Results</h2>
+                    <div class="download-buttons hidden" id="download-buttons">
+                        <button class="download-btn excel-btn" onclick="downloadExcel()">
+                            📊 Excel
+                        </button>
+                        <button class="download-btn pdf-btn" onclick="downloadPDF()">
+                            📄 PDF
+                        </button>
+                    </div>
+                </div>
+
+                <div id="results-placeholder" class="placeholder">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="9" y1="9" x2="15" y2="9"></line>
+                        <line x1="9" y1="15" x2="15" y2="15"></line>
+                    </svg>
+                    <p style="font-size: 1.1rem; font-weight: 500;">Click "Calculate Returns" to see results</p>
+                    <p style="font-size: 0.9rem; margin-top: 10px;">Adjust the parameters and click calculate</p>
+                </div>
+
+                <div id="results-content" class="hidden"></div>
+            </div>
+        </div>
+
+        <!-- Chart Section -->
+        <div class="chart-container hidden" id="chart-section">
+            <h2 style="margin-bottom: 20px;">Growth Projection</h2>
+            <canvas id="myChart" height="80"></canvas>
+        </div>
+
+        <!-- Info Section -->
+        <div class="info-section hidden" id="info-section">
+            <h3 style="font-size: 1.3rem; color: #333; margin-bottom: 15px;">Understanding the Metrics</h3>
+            <div class="info-grid">
+                <div class="info-item">
+                    <h4>CAGR (Compound Annual Growth Rate)</h4>
+                    <p>CAGR represents the mean annual growth rate of an investment over a specified period longer than one year. It's used for lumpsum investments.</p>
+                </div>
+                <div class="info-item">
+                    <h4>XIRR (Extended Internal Rate of Return)</h4>
+                    <p>XIRR calculates returns for investments with multiple cash flows at irregular intervals, making it ideal for SIP calculations where investments happen periodically.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>💼 Developed and Designed by <strong>Shamsudeen EP</strong></p>
+            <p>© 2024 MF Investment Calculator. All rights reserved.</p>
+        </div>
+    </div>
+
+    <!-- Hidden PDF Export Content -->
+    <div class="pdf-export-content" id="pdf-content">
+        <div class="pdf-header">
+            <h1>MF Investment Calculator</h1>
+            <p class="pdf-info" id="pdf-report-type"></p>
+            <p class="pdf-info" id="pdf-date"></p>
+            <p class="pdf-info">Currency: INR (₹)</p>
+        </div>
+
+        <div class="pdf-section">
+            <h2>Investment Summary</h2>
+            <table class="pdf-table" id="pdf-summary-table">
+            </table>
+        </div>
+
+        <div class="pdf-section">
+            <h2>Year-wise Projection</h2>
+            <table class="pdf-table" id="pdf-yearly-table">
+            </table>
+        </div>
+
+        <div class="pdf-footer">
+            <p><strong>Developed and Designed by Shamsudeen EP</strong></p>
+            <p>© 2024 MF Investment Calculator</p>
+            <p class="pdf-disclaimer">
+                Disclaimer: This is a projection based on assumed rates of return and does not guarantee actual returns. 
+                Please consult with a financial advisor before making investment decisions.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        let currentTab = 'lumpsum';
+        let chartInstance = null;
+        let calculatedData = null;
+
+        // Load saved data on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            loadSavedData();
+            updateDisplay();
+        });
+
+        function saveToLocalStorage() {
+            const data = {
+                lumpsum: {
+                    principal: document.getElementById('lumpsum-principal').value,
+                    rate: document.getElementById('lumpsum-rate').value,
+                    years: document.getElementById('lumpsum-years').value
+                },
+                sip: {
+                    monthly: document.getElementById('sip-monthly').value,
+                    rate: document.getElementById('sip-rate').value,
+                    years: document.getElementById('sip-years').value
+                },
+                swp: {
+                    principal: document.getElementById('swp-principal').value,
+                    withdrawal: document.getElementById('swp-withdrawal').value,
+                    rate: document.getElementById('swp-rate').value,
+                    years: document.getElementById('swp-years').value
+                },
+                currentTab: currentTab
+            };
+            localStorage.setItem('mfInvestmentCalculator', JSON.stringify(data));
+            
+            // Show auto-save indicator
+            const indicator = document.getElementById('auto-save-indicator');
+            indicator.classList.add('show');
+            setTimeout(() => {
+                indicator.classList.remove('show');
+            }, 2000);
+        }
+
+        function loadSavedData() {
+            const saved = localStorage.getItem('mfInvestmentCalculator');
+            if (saved) {
+                const data = JSON.parse(saved);
+                
+                // Load lumpsum data
+                document.getElementById('lumpsum-principal').value = data.lumpsum.principal;
+                document.getElementById('lumpsum-rate').value = data.lumpsum.rate;
+                document.getElementById('lumpsum-years').value = data.lumpsum.years;
+                
+                // Load SIP data
+                document.getElementById('sip-monthly').value = data.sip.monthly;
+                document.getElementById('sip-rate').value = data.sip.rate;
+                document.getElementById('sip-years').value = data.sip.years;
+                
+                // Load SWP data
+                document.getElementById('swp-principal').value = data.swp.principal;
+                document.getElementById('swp-withdrawal').value = data.swp.withdrawal;
+                document.getElementById('swp-rate').value = data.swp.rate;
+                document.getElementById('swp-years').value = data.swp.years;
+                
+                // Load current tab
+                if (data.currentTab && data.currentTab !== 'lumpsum') {
+                    currentTab = data.currentTab;
+                    // Update tab display
+                    document.querySelectorAll('.tab-button').forEach(btn => {
+                        btn.classList.remove('active');
+                        if (btn.textContent.toLowerCase() === currentTab) {
+                            btn.classList.add('active');
+                        }
+                    });
+                    
+                    document.getElementById('lumpsum-inputs').classList.add('hidden');
+                    document.getElementById('sip-inputs').classList.add('hidden');
+                    document.getElementById('swp-inputs').classList.add('hidden');
+                    document.getElementById(currentTab + '-inputs').classList.remove('hidden');
+                    
+                    const titles = {
+                        'lumpsum': 'Lumpsum Investment',
+                        'sip': 'SIP Investment',
+                        'swp': 'Systematic Withdrawal Plan'
+                    };
+                    document.getElementById('input-title').textContent = titles[currentTab];
+                }
+            }
+        }
+
+        function clearData() {
+            if (confirm('Are you sure you want to clear all data? This will reset all inputs to default values.')) {
+                localStorage.removeItem('mfInvestmentCalculator');
+                
+                // Reset all inputs to default
+                document.getElementById('lumpsum-principal').value = 100000;
+                document.getElementById('lumpsum-rate').value = 12;
+                document.getElementById('lumpsum-years').value = 10;
+                
+                document.getElementById('sip-monthly').value = 5000;
+                document.getElementById('sip-rate').value = 12;
+                document.getElementById('sip-years').value = 10;
+                
+                document.getElementById('swp-principal').value = 1000000;
+                document.getElementById('swp-withdrawal').value = 10000;
+                document.getElementById('swp-rate').value = 12;
+                document.getElementById('swp-years').value = 10;
+                
+                // Reset to lumpsum tab
+                currentTab = 'lumpsum';
+                document.querySelectorAll('.tab-button').forEach((btn, idx) => {
+                    btn.classList.remove('active');
+                    if (idx === 0) btn.classList.add('active');
+                });
+                
+                document.getElementById('lumpsum-inputs').classList.remove('hidden');
+                document.getElementById('sip-inputs').classList.add('hidden');
+                document.getElementById('swp-inputs').classList.add('hidden');
+                document.getElementById('input-title').textContent = 'Lumpsum Investment';
+                
+                // Clear results
+                document.getElementById('results-placeholder').classList.remove('hidden');
+                document.getElementById('results-content').classList.add('hidden');
+                document.getElementById('download-buttons').classList.add('hidden');
+                document.getElementById('chart-section').classList.add('hidden');
+                document.getElementById('info-section').classList.add('hidden');
+                
+                updateDisplay();
+                
+                alert('All data cleared successfully!');
+            }
+        }
+
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('en-IN', {
+                style: 'currency',
+                currency: 'INR',
+                maximumFractionDigits: 0
+            }).format(value);
+        }
+
+        function formatNumber(value) {
+            return new Intl.NumberFormat('en-IN', {
+                maximumFractionDigits: 2
+            }).format(value);
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // Update tab buttons
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Hide all input sections
+            document.getElementById('lumpsum-inputs').classList.add('hidden');
+            document.getElementById('sip-inputs').classList.add('hidden');
+            document.getElementById('swp-inputs').classList.add('hidden');
+
+            // Show current input section
+            document.getElementById(tab + '-inputs').classList.remove('hidden');
+
+            // Update title
+            const titles = {
+                'lumpsum': 'Lumpsum Investment',
+                'sip': 'SIP Investment',
+                'swp': 'Systematic Withdrawal Plan'
+            };
+            document.getElementById('input-title').textContent = titles[tab];
+
+            // Reset results
+            document.getElementById('results-placeholder').classList.remove('hidden');
+            document.getElementById('results-content').classList.add('hidden');
+            document.getElementById('download-buttons').classList.add('hidden');
+            document.getElementById('chart-section').classList.add('hidden');
+            document.getElementById('info-section').classList.add('hidden');
+
+            updateDisplay();
+            saveToLocalStorage();
+        }
+
+        function updateDisplay() {
+            if (currentTab === 'lumpsum') {
+                const principal = document.getElementById('lumpsum-principal').value;
+                const rate = document.getElementById('lumpsum-rate').value;
+                const years = document.getElementById('lumpsum-years').value;
+                
+                document.getElementById('lumpsum-principal-display').textContent = formatCurrency(principal);
+                document.getElementById('lumpsum-rate-display').textContent = rate + '%';
+                document.getElementById('lumpsum-years-display').textContent = years + ' years';
+            } else if (currentTab === 'sip') {
+                const monthly = document.getElementById('sip-monthly').value;
+                const rate = document.getElementById('sip-rate').value;
+                const years = document.getElementById('sip-years').value;
+                
+                document.getElementById('sip-monthly-display').textContent = formatCurrency(monthly);
+                document.getElementById('sip-rate-display').textContent = rate + '%';
+                document.getElementById('sip-years-display').textContent = years + ' years';
+            } else if (currentTab === 'swp') {
+                const principal = document.getElementById('swp-principal').value;
+                const withdrawal = document.getElementById('swp-withdrawal').value;
+                const rate = document.getElementById('swp-rate').value;
+                const years = document.getElementById('swp-years').value;
+                
+                document.getElementById('swp-principal-display').textContent = formatCurrency(principal);
+                document.getElementById('swp-withdrawal-display').textContent = formatCurrency(withdrawal);
+                document.getElementById('swp-rate-display').textContent = rate + '%';
+                document.getElementById('swp-years-display').textContent = years + ' years';
+            }
+            
+            // Auto-save on input change
+            saveToLocalStorage();
+        }
+
+        function calculateLumpsum() {
+            const principal = parseFloat(document.getElementById('lumpsum-principal').value);
+            const rate = parseFloat(document.getElementById('lumpsum-rate').value) / 100;
+            const years = parseInt(document.getElementById('lumpsum-years').value);
+
+            const futureValue = principal * Math.pow(1 + rate, years);
+            const returns = futureValue - principal;
+
+            const chartData = [];
+            for (let year = 0; year <= years; year++) {
+                const value = principal * Math.pow(1 + rate, year);
+                chartData.push({
+                    year: year,
+                    invested: principal,
+                    value: value
+                });
+            }
+
+            return {
+                invested: principal,
+                returns: returns,
+                total: futureValue,
+                cagr: rate * 100,
+                chartData: chartData
+            };
+        }
+
+        function calculateSIP() {
+            const monthly = parseFloat(document.getElementById('sip-monthly').value);
+            const rate = parseFloat(document.getElementById('sip-rate').value) / 100 / 12;
+            const years = parseInt(document.getElementById('sip-years').value);
+            const n = years * 12;
+
+            const futureValue = monthly * ((Math.pow(1 + rate, n) - 1) / rate) * (1 + rate);
+            const totalInvested = monthly * n;
+            const returns = futureValue - totalInvested;
+
+            // Calculate XIRR
+            const xirr = calculateXIRR(monthly, futureValue, n);
+
+            const chartData = [];
+            for (let year = 0; year <= years; year++) {
+                const months = year * 12;
+                const invested = monthly * months;
+                const value = months > 0 ? monthly * ((Math.pow(1 + rate, months) - 1) / rate) * (1 + rate) : 0;
+                chartData.push({
+                    year: year,
+                    invested: invested,
+                    value: value
+                });
+            }
+
+            return {
+                invested: totalInvested,
+                returns: returns,
+                total: futureValue,
+                xirr: xirr,
+                chartData: chartData
+            };
+        }
+
+        function calculateXIRR(monthlyInvestment, finalValue, months) {
+            let rate = 0.1;
+            const tolerance = 0.0001;
+            const maxIterations = 100;
+
+            for (let i = 0; i < maxIterations; i++) {
+                let npv = -finalValue;
+                let dnpv = 0;
+
+                for (let j = 0; j < months; j++) {
+                    const t = (months - j) / 12;
+                    npv += monthlyInvestment * Math.pow(1 + rate, t);
+                    dnpv += monthlyInvestment * t * Math.pow(1 + rate, t - 1);
+                }
+
+                const newRate = rate - npv / dnpv;
+
+                if (Math.abs(newRate - rate) < tolerance) {
+                    return newRate * 100;
+                }
+
+                rate = newRate;
+            }
+
+            return rate * 100;
+        }
+
+        function calculateSWP() {
+            const principal = parseFloat(document.getElementById('swp-principal').value);
+            const withdrawal = parseFloat(document.getElementById('swp-withdrawal').value);
+            const rate = parseFloat(document.getElementById('swp-rate').value) / 100 / 12;
+            const years = parseInt(document.getElementById('swp-years').value);
+            const n = years * 12;
+
+            let balance = principal;
+            let totalWithdrawn = 0;
+            const chartData = [];
+
+            for (let month = 1; month <= n; month++) {
+                balance = balance * (1 + rate) - withdrawal;
+                totalWithdrawn += withdrawal;
+
+                if (month % 12 === 0) {
+                    chartData.push({
+                        year: month / 12,
+                        balance: Math.max(0, balance)
+                    });
+                }
+
+                if (balance <= 0) break;
+            }
+
+            return {
+                initialInvestment: principal,
+                totalWithdrawn: totalWithdrawn,
+                finalBalance: Math.max(0, balance),
+                chartData: chartData
+            };
+        }
+
+        function calculate() {
+            let results;
+
+            if (currentTab === 'lumpsum') {
+                results = calculateLumpsum();
+                displayLumpsumResults(results);
+            } else if (currentTab === 'sip') {
+                results = calculateSIP();
+                displaySIPResults(results);
+            } else if (currentTab === 'swp') {
+                results = calculateSWP();
+                displaySWPResults(results);
+            }
+
+            calculatedData = results;
+
+            // Show results and hide placeholder
+            document.getElementById('results-placeholder').classList.add('hidden');
+            document.getElementById('results-content').classList.remove('hidden');
+            document.getElementById('download-buttons').classList.remove('hidden');
+            document.getElementById('chart-section').classList.remove('hidden');
+            document.getElementById('info-section').classList.remove('hidden');
+
+            // Display chart
+            displayChart(results);
+        }
+
+        function displayLumpsumResults(results) {
+            const html = `
+                <div class="result-card blue">
+                    <label>💰 Invested Amount</label>
+                    <div class="value">${formatCurrency(results.invested)}</div>
+                </div>
+                <div class="result-card green">
+                    <label>📈 Estimated Returns</label>
+                    <div class="value">${formatCurrency(results.returns)}</div>
+                </div>
+                <div class="result-card indigo">
+                    <label>💎 Total Value</label>
+                    <div class="value">${formatCurrency(results.total)}</div>
+                </div>
+                <div class="result-card purple">
+                    <label>📊 CAGR</label>
+                    <div class="value">${results.cagr.toFixed(2)}%</div>
+                </div>
+            `;
+            document.getElementById('results-content').innerHTML = html;
+        }
+
+        function displaySIPResults(results) {
+            const html = `
+                <div class="result-card blue">
+                    <label>💰 Total Invested</label>
+                    <div class="value">${formatCurrency(results.invested)}</div>
+                </div>
+                <div class="result-card green">
+                    <label>📈 Estimated Returns</label>
+                    <div class="value">${formatCurrency(results.returns)}</div>
+                </div>
+                <div class="result-card indigo">
+                    <label>💎 Total Value</label>
+                    <div class="value">${formatCurrency(results.total)}</div>
+                </div>
+                <div class="result-card purple">
+                    <label>📊 XIRR (Approx.)</label>
+                    <div class="value">${results.xirr.toFixed(2)}%</div>
+                </div>
+            `;
+            document.getElementById('results-content').innerHTML = html;
+        }
+
+        function displaySWPResults(results) {
+            let html = `
+                <div class="result-card blue">
+                    <label>💰 Initial Investment</label>
+                    <div class="value">${formatCurrency(results.initialInvestment)}</div>
+                </div>
+                <div class="result-card orange">
+                    <label>📉 Total Withdrawn</label>
+                    <div class="value">${formatCurrency(results.totalWithdrawn)}</div>
+                </div>
+                <div class="result-card green">
+                    <label>💎 Final Balance</label>
+                    <div class="value">${formatCurrency(results.finalBalance)}</div>
+                </div>
+            `;
+
+            if (results.finalBalance <= 0) {
+                html += `
+                    <div class="result-card red">
+                        <label>⚠️ Warning</label>
+                        <div style="font-size: 0.95rem; color: #991b1b; font-weight: 500; margin-top: 5px;">
+                            Your investment will be depleted before the end of the period!
+                        </div>
+                    </div>
+                `;
+            }
+
+            document.getElementById('results-content').innerHTML = html;
+        }
+
+        function displayChart(results) {
+            const ctx = document.getElementById('myChart').getContext('2d');
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            let chartConfig;
+
+            if (currentTab === 'swp') {
+                chartConfig = {
+                    type: 'line',
+                    data: {
+                        labels: results.chartData.map(d => 'Year ' + d.year),
+                        datasets: [{
+                            label: 'Remaining Balance',
+                            data: results.chartData.map(d => d.balance),
+                            borderColor: '#f59e0b',
+                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ': ' + formatCurrency(context.parsed.y);
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return '₹' + (value/1000) + 'K';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                };
+            } else {
+                chartConfig = {
+                    type: 'line',
+                    data: {
+                        labels: results.chartData.map(d => 'Year ' + d.year),
+                        datasets: [{
+                            label: 'Invested Amount',
+                            data: results.chartData.map(d => d.invested),
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: false
+                        }, {
+                            label: 'Future Value',
+                            data: results.chartData.map(d => d.value),
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ': ' + formatCurrency(context.parsed.y);
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return '₹' + (value/1000) + 'K';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                };
+            }
+
+            chartInstance = new Chart(ctx, chartConfig);
+        }
+
+        function downloadExcel() {
+            let csvContent = '';
+            const date = new Date().toLocaleString('en-IN');
+
+            if (currentTab === 'lumpsum') {
+                const results = calculatedData;
+                csvContent = 'MF Investment Calculator - Lumpsum Report\n';
+                csvContent += 'Generated on: ' + date + '\n\n';
+                csvContent += 'Investment Summary\n';
+                csvContent += 'Invested Amount,' + formatNumber(results.invested) + '\n';
+                csvContent += 'Expected Return Rate,' + results.cagr.toFixed(2) + '%\n';
+                csvContent += 'Estimated Returns,' + formatNumber(results.returns) + '\n';
+                csvContent += 'Total Value,' + formatNumber(results.total) + '\n';
+                csvContent += 'CAGR,' + results.cagr.toFixed(2) + '%\n\n';
+                csvContent += 'Year-wise Breakdown\n';
+                csvContent += 'Year,Invested,Future Value\n';
+                results.chartData.forEach(item => {
+                    csvContent += item.year + ',' + formatNumber(item.invested) + ',' + formatNumber(item.value) + '\n';
+                });
+            } else if (currentTab === 'sip') {
+                const results = calculatedData;
+                csvContent = 'MF Investment Calculator - SIP Report\n';
+                csvContent += 'Generated on: ' + date + '\n\n';
+                csvContent += 'Investment Summary\n';
+                csvContent += 'Total Invested,' + formatNumber(results.invested) + '\n';
+                csvContent += 'Estimated Returns,' + formatNumber(results.returns) + '\n';
+                csvContent += 'Total Value,' + formatNumber(results.total) + '\n';
+                csvContent += 'XIRR,' + results.xirr.toFixed(2) + '%\n\n';
+                csvContent += 'Year-wise Breakdown\n';
+                csvContent += 'Year,Total Invested,Future Value\n';
+                results.chartData.forEach(item => {
+                    csvContent += item.year + ',' + formatNumber(item.invested) + ',' + formatNumber(item.value) + '\n';
+                });
+            } else if (currentTab === 'swp') {
+                const results = calculatedData;
+                csvContent = 'MF Investment Calculator - SWP Report\n';
+                csvContent += 'Generated on: ' + date + '\n\n';
+                csvContent += 'Withdrawal Plan Summary\n';
+                csvContent += 'Initial Investment,' + formatNumber(results.initialInvestment) + '\n';
+                csvContent += 'Total Withdrawn,' + formatNumber(results.totalWithdrawn) + '\n';
+                csvContent += 'Final Balance,' + formatNumber(results.finalBalance) + '\n\n';
+                csvContent += 'Year-wise Balance\n';
+                csvContent += 'Year,Remaining Balance\n';
+                results.chartData.forEach(item => {
+                    csvContent += item.year + ',' + formatNumber(item.balance) + '\n';
+                });
+            }
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'MF_Investment_' + currentTab.toUpperCase() + '_' + new Date().toISOString().split('T')[0] + '.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function downloadPDF() {
+            if (!calculatedData) return;
+
+            // Populate PDF content
+            document.getElementById('pdf-report-type').textContent = 'Report Type: ' + currentTab.toUpperCase();
+            document.getElementById('pdf-date').textContent = 'Generated On: ' + new Date().toLocaleString('en-IN');
+
+            let summaryHTML = '';
+            let yearlyHTML = '';
+
+            if (currentTab === 'lumpsum') {
+                const principal = parseFloat(document.getElementById('lumpsum-principal').value);
+                const rate = parseFloat(document.getElementById('lumpsum-rate').value);
+                const years = parseInt(document.getElementById('lumpsum-years').value);
+
+                summaryHTML = `
+                    <tr><td>Invested Amount</td><td>${formatCurrency(calculatedData.invested)}</td></tr>
+                    <tr><td>Expected Return Rate (p.a.)</td><td>${rate}%</td></tr>
+                    <tr><td>Time Period</td><td>${years} years</td></tr>
+                    <tr><td>Estimated Returns</td><td>${formatCurrency(calculatedData.returns)}</td></tr>
+                    <tr><td>Total Value</td><td>${formatCurrency(calculatedData.total)}</td></tr>
+                    <tr><td>CAGR</td><td>${calculatedData.cagr.toFixed(2)}%</td></tr>
+                `;
+
+                yearlyHTML = '<tr><th>Year</th><th>Invested Amount</th><th>Future Value</th></tr>';
+                calculatedData.chartData.forEach(item => {
+                    yearlyHTML += `
+                        <tr>
+                            <td>${item.year}</td>
+                            <td>${formatCurrency(item.invested)}</td>
+                            <td>${formatCurrency(item.value)}</td>
+                        </tr>
+                    `;
+                });
+            } else if (currentTab === 'sip') {
+                const monthly = parseFloat(document.getElementById('sip-monthly').value);
+                const rate = parseFloat(document.getElementById('sip-rate').value);
+                const years = parseInt(document.getElementById('sip-years').value);
+
+                summaryHTML = `
+                    <tr><td>Monthly Investment</td><td>${formatCurrency(monthly)}</td></tr>
+                    <tr><td>Expected Return Rate (p.a.)</td><td>${rate}%</td></tr>
+                    <tr><td>Time Period</td><td>${years} years</td></tr>
+                    <tr><td>Total Invested</td><td>${formatCurrency(calculatedData.invested)}</td></tr>
+                    <tr><td>Estimated Returns</td><td>${formatCurrency(calculatedData.returns)}</td></tr>
+                    <tr><td>Total Value</td><td>${formatCurrency(calculatedData.total)}</td></tr>
+                    <tr><td>XIRR (Approx.)</td><td>${calculatedData.xirr.toFixed(2)}%</td></tr>
+                `;
+
+                yearlyHTML = '<tr><th>Year</th><th>Total Invested</th><th>Future Value</th></tr>';
+                calculatedData.chartData.forEach(item => {
+                    yearlyHTML += `
+                        <tr>
+                            <td>${item.year}</td>
+                            <td>${formatCurrency(item.invested)}</td>
+                            <td>${formatCurrency(item.value)}</td>
+                        </tr>
+                    `;
+                });
+            } else if (currentTab === 'swp') {
+                const principal = parseFloat(document.getElementById('swp-principal').value);
+                const withdrawal = parseFloat(document.getElementById('swp-withdrawal').value);
+                const rate = parseFloat(document.getElementById('swp-rate').value);
+                const years = parseInt(document.getElementById('swp-years').value);
+
+                summaryHTML = `
+                    <tr><td>Initial Investment</td><td>${formatCurrency(calculatedData.initialInvestment)}</td></tr>
+                    <tr><td>Monthly Withdrawal</td><td>${formatCurrency(withdrawal)}</td></tr>
+                    <tr><td>Expected Return Rate (p.a.)</td><td>${rate}%</td></tr>
+                    <tr><td>Withdrawal Period</td><td>${years} years</td></tr>
+                    <tr><td>Total Withdrawn</td><td>${formatCurrency(calculatedData.totalWithdrawn)}</td></tr>
+                    <tr><td>Final Balance</td><td>${formatCurrency(calculatedData.finalBalance)}</td></tr>
+                `;
+
+                yearlyHTML = '<tr><th>Year</th><th>Remaining Balance</th></tr>';
+                calculatedData.chartData.forEach(item => {
+                    yearlyHTML += `
+                        <tr>
+                            <td>${item.year}</td>
+                            <td>${formatCurrency(item.balance)}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            document.getElementById('pdf-summary-table').innerHTML = summaryHTML;
+            document.getElementById('pdf-yearly-table').innerHTML = yearlyHTML;
+
+            // Show PDF content and hide main content
+            const pdfContent = document.getElementById('pdf-content');
+            const mainContainer = document.querySelector('.container');
+            
+            mainContainer.style.display = 'none';
+            pdfContent.classList.add('active');
+
+            // Generate PDF
+            const opt = {
+                margin: [0.5, 0.5, 0.5, 0.5],
+                filename: 'MF_Investment_' + currentTab.toUpperCase() + '_' + new Date().toISOString().split('T')[0] + '.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { 
+                    scale: 2,
+                    useCORS: true,
+                    letterRendering: true
+                },
+                jsPDF: { 
+                    unit: 'in', 
+                    format: 'a4', 
+                    orientation: 'portrait',
+                    compress: true
+                },
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+            };
+
+            html2pdf().set(opt).from(pdfContent).save().then(() => {
+                // Restore main content
+                mainContainer.style.display = 'block';
+                pdfContent.classList.remove('active');
+            });
+        }
+
+        // Initialize display
+        updateDisplay();
+    </script>
+</body>
+</html>
